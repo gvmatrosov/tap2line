@@ -15,6 +15,10 @@ line. A renamed control then rebuilds its case instead of turning it red for not
 finds nothing in this codebase, skip that case with a printed note — and if that leaves a rule
 without any case, say so in the hand-over.
 
+**A case sends what the browser sends.** A template line holds `data-id="${p.id}"`; the browser
+sends `data-id="3"`. Substitute runtime values the way the page would — a case that sends the raw
+`${…}` text hides ranking bugs that a real tap shows.
+
 **Every case carries a real ancestor chain** (classes of the enclosing elements in the same
 template). A bare element is a laboratory signature; it stops catching what breaks in the field.
 
@@ -68,13 +72,17 @@ The breaks, at minimum:
 | rarity | `rarity(n)` → always 1 |
 | ancestor distance scale | `6 / (1 + d)` → `0` |
 | rival must share the id | the same-id check → always true |
+| rival must share a rare token | the same-rare check → always true |
 | confidence gap | `× 1.6` → `× 1.0` |
 | handler search | `≤ 150` → `≤ 0` |
 
 The replace strings must match the code exactly; if a replace finds nothing, the probe fails
 loudly (otherwise a refactor silently turns a break into a no-op that "passes"). Keep the probe
 next to the tests, run it after any change to ranking, and print a table: break → which case went
-red. A break no case catches is a rule nobody guards — add a case, do not delete the break.
+red. A break no case catches is a rule nobody guards — add a case, do not delete the break. If this
+codebase cannot supply a real case for it (no hand-repeated tiles here, so the ancestor-distance
+rule never decides anything), print the break as a named **GAP** with the reason — never a silent
+pass, never an invented case — and list it in the hand-over.
 
 ## 4. Prove red once
 

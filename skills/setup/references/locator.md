@@ -51,7 +51,10 @@ Two gates, both answering 404:
 
 1. **absence** — mount the routes only in development (the project's own dev flag). In
    production they do not exist;
-2. **who** — if the dev server is reachable by anyone but the developer (a shared dev box, a
+2. **who** — with no login in the project, answer only loopback callers (`127.0.0.1`, `::1`)
+   and refuse anything that arrived through a proxy (a forwarding header present). Tell the person
+   the price: a phone on the LAN cannot use it then; for a phone, gate on a login instead.
+   If the dev server is reachable by anyone but the developer (a shared dev box, a
    staging site, a server where dev and real users are the same process), let only the project's
    owner/admin through, reusing the project's existing auth check. If the project impersonates
    users ("view as"), check the real actor, not the impersonated one — the inspector is used most
@@ -146,6 +149,9 @@ The best candidate is `best`. A **rival** is a candidate that would be a *differ
   at any distance (hand-repeated markup is exactly the case to catch);
 - if `best` matched the element's **own id**, a rival must match that id too — lines sharing only
   a decorative class are different elements, not competing answers;
+- likewise, if `best` matched one of the element's **rare** own tokens (2 hits or fewer in the
+  corpus), a rival must match one of those rare tokens too. A sort button sharing only `.btn` with
+  "Add to cart" is another element, not a competing answer;
 - otherwise, a rival is any candidate in another file, or more than 60 lines away in the same file.
 
 ```

@@ -27,7 +27,9 @@ While on:
   could be cancelled. In each: `preventDefault`, `stopPropagation`, `stopImmediatePropagation` —
   except on the tool's own button and plaque. Nothing in the app may fire;
 - `pointerover` draws a frame around the element under the pointer with a small `tag.class` tip;
-- `Esc` switches off;
+- `Esc` switches off — handle it first in the capture-phase `keydown`, before the "is this the
+  tool's own element" check: after a click on the button the focus stays on the button, and Esc
+  must still work;
 - the screen is visibly different (a coloured frame around the viewport, a filled button);
 - it switches **itself off after 3 minutes without a pick**, and says so. A forgotten mode looks
   exactly like a broken app — nothing responds — the worst failure a diagnostic tool can have;

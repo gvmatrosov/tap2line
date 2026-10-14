@@ -102,7 +102,8 @@ Follow [references/guards.md](references/guards.md):
 
 ## 6. Prove it on the real screen
 
-Run the app, turn the mode on, tap at least six different kinds of element (a button with an id,
+Run the app, turn the mode on (yourself through a headless browser if the project has one,
+otherwise ask the person to tap and paste you the lines), tap at least six different kinds of element (a button with an id,
 an item in a repeated list, something inside a modal, a plain text label, an icon, a container).
 For each, open the returned line and check it is where that element is built. Report the result
 as numbers — "5 of 6 exact, 1 came back `(?)` with the right line second" — never "it works".
