@@ -201,8 +201,9 @@ Confidence is about the **gap**, not the score. Twenty identical cards on screen
 function are one address — repetition on screen is not ambiguity in code. Real ambiguity is real
 copy-paste in the source, and saying so is often the most useful finding.
 
-`others` = up to 3 next candidates that are rivals or far enough away — shown even when
-confidence is high, so the person sees the same name lives elsewhere. A layout file and the code
+`others` = up to 3 next candidates that are rivals or far enough away **and share the element's
+id or one of its rare tokens** — shown even when confidence is high, so the person sees the same
+name lives elsewhere. Lines sharing only a common name (`btn`) are noise there. A layout file and the code
 that wires it (`fragment_cart.xml` and `CartFragment.kt`) are both useful: show the second as
 `also:`.
 

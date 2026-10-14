@@ -59,9 +59,9 @@ test suite behind — if you want the inspector guarded as your code grows, ask 
 
 ## Status
 
-Verified end to end on web projects without a build step, in three clean Claude sessions that had
-only this skill: 44 taps on real elements, zero confident wrong answers (37 right with high
-confidence, 6 honest `(?)` with the right line listed, 1 honest "not found").
+Verified end to end on web projects without a build step, in four clean Claude sessions that had
+only this skill: 57 taps on real elements, zero confident wrong answers (48 right with high
+confidence, 8 honest `(?)` with the right line listed, 1 honest "not found").
 Other platforms are built from the same method and a per-platform guide; they have not had such a
 run yet — reports welcome.
 
