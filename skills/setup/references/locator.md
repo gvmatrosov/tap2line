@@ -184,8 +184,10 @@ The best candidate is `best`. A **rival** is a candidate that would be a *differ
   at any distance (hand-repeated markup is exactly the case to catch);
 - if `best` matched the element's **own id**, a rival must match that id too — lines sharing only
   a decorative name are different elements, not competing answers;
-- likewise, if `best` matched one of the element's **rare** own tokens (2 hits or fewer in the
-  corpus), a rival must match one of those rare tokens too;
+- likewise, if `best` matched any of the element's **rare** own tokens (2 hits or fewer in the
+  corpus), a rival must match **every** rare token `best` matched — a line sharing one uncommon
+  class but missing the other is a different element (a Sort button with `btn-ghost` is not a
+  rival to a Details button with `btn-ghost btn-info`);
 - otherwise, a rival is any candidate in another file, or more than 60 lines away in the same file.
 
 ```

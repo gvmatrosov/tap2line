@@ -70,9 +70,10 @@ builds are the lock — they run in your project and fail when the inspector wou
 
 ## Status
 
-Verified end to end on web projects without a build step, in two clean Claude sessions that had
-only this skill: 33 taps on real elements, zero confident wrong answers (28 exact, 4 honest `(?)`
-with the right line listed, 1 honest "not found"); every guard green and proven able to go red.
+Verified end to end on web projects without a build step, in three clean Claude sessions that had
+only this skill: 44 taps on real elements, zero confident wrong answers (37 right with high
+confidence, 6 honest `(?)` with the right line listed, 1 honest "not found"); every guard green and
+proven able to go red.
 Other platforms are built from the same method and a per-platform guide; they have not had such a
 run yet — reports welcome.
 
