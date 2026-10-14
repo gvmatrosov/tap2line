@@ -15,13 +15,25 @@
   </g>
   <circle cx="500" cy="400" r="70" fill="none" stroke="#fdf2e6" stroke-width="10" opacity=".9"/>
   <circle cx="500" cy="400" r="112" fill="none" stroke="#fdf2e6" stroke-width="8" opacity=".45"/>
-  <g transform="translate(500,400) rotate(-35)">
-    <rect x="-62" y="-70" width="250" height="300" rx="90" fill="#d9a277" transform="translate(-10,300)"/>
-    <rect x="-58" y="-6" width="116" height="420" rx="58" fill="#f2c39a"/>
-    <rect x="-36" y="10" width="72" height="80" rx="34" fill="#fbe3cc"/>
-    <rect x="58" y="250" width="100" height="150" rx="50" fill="#e8b386"/>
-    <rect x="58" y="380" width="100" height="150" rx="50" fill="#e8b386"/>
-    <rect x="-120" y="300" width="150" height="96" rx="48" fill="#f2c39a" transform="rotate(30,-45,348)"/>
+  <defs><clipPath id="bg"><rect width="1024" height="1024" rx="220"/></clipPath></defs>
+  <g clip-path="url(#bg)">
+  <g transform="translate(500,400) rotate(-33)">
+    <!-- wrist and sleeve, running off the icon's edge -->
+    <rect x="-40" y="420" width="250" height="400" rx="40" fill="#e8b386"/>
+    <rect x="-60" y="560" width="290" height="300" rx="30" fill="#3d6b9e"/>
+    <rect x="-60" y="560" width="290" height="44" rx="22" fill="#5b8cc4"/>
+    <!-- palm -->
+    <rect x="-56" y="210" width="262" height="300" rx="90" fill="#e8b386"/>
+    <!-- three curled fingers, knuckles to the right of the index finger -->
+    <rect x="40" y="232" width="176" height="84" rx="42" fill="#f2c39a"/>
+    <rect x="40" y="306" width="176" height="84" rx="42" fill="#eab88d"/>
+    <rect x="40" y="380" width="166" height="84" rx="42" fill="#e3ad80"/>
+    <!-- index finger -->
+    <rect x="-56" y="-8" width="112" height="330" rx="56" fill="#f2c39a"/>
+    <rect x="-36" y="8" width="72" height="84" rx="34" fill="#fbe3cc"/>
+    <!-- thumb folded across the palm -->
+    <rect x="-74" y="262" width="150" height="80" rx="40" fill="#f6cfaa" transform="rotate(-18,1,302)"/>
+  </g>
   </g>
   <text x="200" y="935" text-anchor="middle" font-family="WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif" font-weight="bold" font-size="130" fill="#ffffff" stroke="#ffffff" stroke-width="5" stroke-linejoin="round">独</text>
 </svg>
