@@ -1,5 +1,7 @@
 # tap2line
 
+Stop paying Claude Code to search for code you can point at.
+
 Tap any element in your running app and get the source line that builds it:
 
 ```

@@ -1,7 +1,7 @@
 {
   "name": "tap2line",
-  "version": "0.2.1",
-  "description": "Tap any element in your running app — the source line that builds it lands on your clipboard, ready for Claude Code. Any platform: web, React Native, Flutter, Android, iOS, desktop. Claude builds the tool inside your project, with tests; nothing shipped, debug builds only.",
+  "version": "0.2.2",
+  "description": "Stop paying Claude Code to search for code you can point at. Tap any element in your running app — its source line lands on your clipboard, ready to paste into your prompt. Any platform: web, mobile, desktop. Claude builds the tool inside your project, with tests; debug builds only.",
   "author": {
     "name": "gvmatrosov",
     "url": "https://github.com/gvmatrosov"
