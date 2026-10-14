@@ -106,8 +106,10 @@ everywhere.
 Run the app, switch the mode on, tap at least six different kinds of element (one with an id,
 an item in a repeated list, something inside a modal or sheet, a plain text label, an icon, a
 container). Do it yourself through the project's UI-test driver if there is one; otherwise ask the
-person to tap and then read `.tap2line/last.txt`. For each, open the returned line and check that
-it builds that element. Report numbers: "5 of 6 exact, 1 came back `(?)` with the right line
+person to tap and then read `.tap2line/last.txt`. Close whatever is open
+(a modal, a sheet) before the next tap, or the tap lands on its overlay and the overlay's line is
+the right answer to the wrong question. For each, open the returned line and check that it builds
+that element. Report numbers: "5 of 6 exact, 1 came back `(?)` with the right line
 second". A confident wrong answer is a bug to fix before you finish: it costs the person a whole
 session, while an honest `(?)` costs ten seconds.
 
@@ -124,8 +126,8 @@ project's ignore file.
 - **No confident lies.** Below the confidence gap the answer ships as `(?)` with alternatives.
 - **Nothing in a release build.** The tapper is compiled out or never loaded outside debug; the
   locator never runs in production.
-- **The locator reveals nothing new.** It returns positions in the UI source only — never server
-  logic, config or secrets — and answers only the developer.
+- **The locator answers only the developer** and returns positions, never file contents. Its
+  corpus is UI source (including server code that emits markup), never config or secrets.
 - **Keep the tool's own files out of its corpus.** Their comments name other modules' classes and
   pull answers into the tool itself.
 - **The tool must not look like a broken app.** It is loud while on, never survives a restart,

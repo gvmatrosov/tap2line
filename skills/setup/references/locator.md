@@ -93,7 +93,10 @@ web server, every user). Cap and type-coerce inside the function itself (tests c
 ## Corpus
 
 The files where the UI is born (SKILL.md step 1), read as lines, plus the text tables (string
-resources, translation files). Cache for ~2 seconds: survives a burst of taps, sees an edit on
+resources, translation files). That includes server code that emits markup as strings (a
+`renderRow()` helper in a route file) — otherwise its elements come back "not found". The locator
+answers only the developer and returns positions, never file contents, so this reveals nothing;
+still leave out config, secrets and anything that is not UI. Cache for ~2 seconds: survives a burst of taps, sees an edit on
 the next one. Exclude the tool's own files by name.
 
 ## Tokens and weights
@@ -165,7 +168,10 @@ candidate's own file:
   parent's opening. This smooth scale is what separates hand-written identical tiles in a row; a
   flat "nearby" bonus gives them all the same score and the first one wins.
 
-Cap the ancestor sum at 16.
+Cap the flat part (the +2 and +3 bonuses) at 16 in total, so ancestors cannot outvote the
+element's own tokens — but **never cap the distance scale**: it is the tie-breaker. A clean run on
+five hand-written tiles showed a cap over the whole sum lets all five reach the same maximum, and
+the section that tells them apart stops counting.
 
 ## Merge, rivals, confidence
 

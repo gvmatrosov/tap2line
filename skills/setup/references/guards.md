@@ -88,7 +88,9 @@ next to the tests, run it after any change to ranking, and print a table: break 
 red. A break no case catches is a rule nobody guards — add a case, do not delete the break. If this
 codebase cannot supply a real case for it (no hand-repeated tiles here, so the ancestor-distance
 rule never decides anything), print the break as a named **GAP** with the reason — never a silent
-pass, never an invented case — and list it in the hand-over.
+pass, never an invented case — and list it in the hand-over. In a small app several rules never decide anything (a clean run
+on a 300-line sample: 4 of 9 breaks were gaps, each checked by tapping every element with the rule
+broken) — gaps are expected there; hiding them is not.
 
 ## 4. Prove red once
 
