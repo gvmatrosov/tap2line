@@ -1,0 +1,9 @@
+{
+  "name": "tap2line",
+  "version": "0.1.0",
+  "description": "Tap any element in your running web app and get the source line that builds it on your clipboard, ready to paste into Claude Code. A skill: Claude builds the inspector inside your own project, for your stack, with tests that prove it would rather say \"not sure\" than lie. No build step needed; made for hand-written JS, plain HTML and server templates.",
+  "author": { "name": "gvmatrosov", "url": "https://github.com/gvmatrosov" },
+  "repository": "https://github.com/gvmatrosov/tap2line",
+  "license": "MIT",
+  "keywords": ["inspector", "click-to-source", "devtools", "vanilla-js", "no-build", "locator"]
+}

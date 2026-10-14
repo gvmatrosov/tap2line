@@ -1,0 +1,9 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "tap2line",
+  "description": "Tap an element, get its source line.",
+  "owner": { "name": "gvmatrosov", "url": "https://github.com/gvmatrosov" },
+  "plugins": [
+    { "name": "tap2line", "source": "./", "category": "development" }
+  ]
+}
