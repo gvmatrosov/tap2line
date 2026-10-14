@@ -15,9 +15,10 @@ line. A renamed control then rebuilds its case instead of turning it red for not
 finds nothing in this codebase, skip that case with a printed note — and if that leaves a rule
 without any case, say so in the hand-over.
 
-**A case sends what the browser sends.** A template line holds `data-id="${p.id}"`; the browser
-sends `data-id="3"`. Substitute runtime values the way the page would — a case that sends the raw
-`${…}` text hides ranking bugs that a real tap shows.
+**A case sends what the running app sends.** A template line holds `data-id="${p.id}"`; the
+browser sends `data-id="3"`. A layout holds `@+id/buy_now`; the app sends `buy_now`. Substitute
+runtime values the way the app would — a case that sends the raw source text hides ranking bugs
+that a real tap shows.
 
 **Every case carries a real ancestor chain** (classes of the enclosing elements in the same
 template). A bare element is a laboratory signature; it stops catching what breaks in the field.
@@ -27,26 +28,30 @@ One case per rule, each named after the rule it guards:
 | # | case | expectation |
 |---|---|---|
 | 1 | element with a unique id | exact line, confidence high |
-| 2 | hand-repeated identical markup (several tiles written out one after another) | the tapped tile's own line, not the first one; with no distinguishing ancestor — `(?)` |
+| 2 | hand-repeated identical elements (several tiles written out one after another) | the tapped tile's own line, not the first one; with no distinguishing ancestor — `(?)` |
 | 3 | same signature in two different screen containers | different files for the two `screen` values |
 | 4 | a token with both a birth line and a `querySelector` line | the birth line |
 | 5 | a unique id next to a common class used in many places | confidence stays high |
 | 6 | a rare class next to a common one | the rare class's line wins, confidence high |
 | 7 | handler wired near the birth line | `handler` is that line |
 | 8 | **negative**: tokens that exist nowhere in the corpus | `found: false`, nothing invented |
+| 9 | visible text that lives in a string table (if the project has one) | the line that uses the key |
+| 10 | an `exact` position (if the platform gives one) — and one pointing outside the corpus | the first is taken as `exact`; the second is refused and ranking answers |
 
 Build what this codebase can supply; if it has no repeated tiles, construct none — a case
 must come from the real source to mean anything.
 
 ## 2. The autotest
 
-Run every case through the locator over HTTP against the running dev server (that also checks
+Run every case through the locator over HTTP against the running locator (that also checks
 the route, the gate and the JSON), compare file, line and confidence, print one line per case,
 exit non-zero on any failure. Add:
 
 - **abuse**: a signature with 9000 classes must answer in well under a second (the caps work);
   junk types (`cls: "x"`, `path: {}`, `data: []`) must give 400 or a normal answer, never 500;
-- **the gate**: without the owner's session (or with the dev flag off) both routes answer 404.
+- **the gate**: with the dev flag off, from a non-loopback address without the token, through a
+  proxy, or without the owner's session (whichever gates this project uses) — both routes 404;
+- **the record**: after a locate, `.tap2line/last.txt` holds that line.
 
 Wire it into the project's existing test command. If the project has none, add one script and
 tell the person how to run it.
@@ -75,6 +80,7 @@ The breaks, at minimum:
 | rival must share a rare token | the same-rare check → always true |
 | confidence gap | `× 1.6` → `× 1.0` |
 | handler search | `≤ 150` → `≤ 0` |
+| text through a table (if built) | the key lookup → nothing |
 
 The replace strings must match the code exactly; if a replace finds nothing, the probe fails
 loudly (otherwise a refactor silently turns a break into a no-op that "passes"). Keep the probe
@@ -89,14 +95,14 @@ pass, never an invented case — and list it in the hand-over.
 Before trusting a green autotest: invert one expectation by hand (expect the wrong line), run,
 watch it fail, revert. A test that cannot fail is false comfort.
 
-## 5. End-to-end browser probe (only if a headless browser is already in the project)
+## 5. End-to-end probe (only if a UI-test driver is already in the project)
 
-Log in the way the project's own browser tests do (never a door added for the test), open a
-screen, then: the button exists → mode on → tap a known element → **the app made zero network
-requests of its own** besides `locate` → the clipboard holds an address (grant clipboard
-permission, or read the plaque) → `Esc` → mode off, no frame, no plaque, a tap presses normally
-again. If the login goes stale, the probe must fail, not silently run as anonymous and prove
-nothing.
+With the project's own driver (Playwright, Espresso, XCUITest, Flutter integration tests…), log in
+the way its tests already do (never a door added for the test), open a screen, then: the toggle
+exists → mode on → tap a known element → **nothing in the app fired** (no navigation, no request
+of its own besides `locate`, no state change) → the line arrived (clipboard, plaque or
+`.tap2line/last.txt`) → mode off → no frame, no plaque, a tap presses normally again. If the login
+goes stale, the probe must fail, not silently run logged-out and prove nothing.
 
 ## No data sensor
 

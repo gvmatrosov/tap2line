@@ -1,9 +1,22 @@
 {
   "name": "tap2line",
-  "version": "0.1.2",
-  "description": "Tap any element in your running web app and get the source line that builds it on your clipboard, ready to paste into Claude Code. A skill: Claude builds the inspector inside your own project, for your stack, with tests that prove it would rather say \"not sure\" than lie. No build step needed; made for hand-written JS, plain HTML and server templates.",
-  "author": { "name": "gvmatrosov", "url": "https://github.com/gvmatrosov" },
+  "version": "0.2.0",
+  "description": "Tap any element in your running app — the source line that builds it lands on your clipboard, ready for Claude Code. Any platform: web, React Native, Flutter, Android, iOS, desktop. Claude builds the tool inside your project, with tests; nothing shipped, debug builds only.",
+  "author": {
+    "name": "gvmatrosov",
+    "url": "https://github.com/gvmatrosov"
+  },
   "repository": "https://github.com/gvmatrosov/tap2line",
   "license": "MIT",
-  "keywords": ["inspector", "click-to-source", "devtools", "vanilla-js", "no-build", "locator"]
+  "keywords": [
+    "inspector",
+    "click-to-source",
+    "tap-to-source",
+    "devtools",
+    "android",
+    "ios",
+    "flutter",
+    "react-native",
+    "web"
+  ]
 }

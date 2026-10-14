@@ -1,34 +1,51 @@
 # The locator — signature in, address out
 
-Write it in the project's server language and idiom. The algorithm below is language-neutral;
-numbers are the tuned starting point.
+It runs on the developer's machine, next to the source, on every platform. Write it in the
+project's own server/tooling language when there is one (a dev-only route in a web server), or as
+a standalone zero-dependency script in whatever runtime the machine surely has (Node, Python).
+The algorithm is plain string scanning; the numbers below are the tuned starting point.
 
 ## Contract
 
 ```
-GET  <dev prefix>/ping     → 200 {"ok": true, "files": <corpus size>}   — or 404
-POST <dev prefix>/locate   → 200 {found, confidence, best, others, signature, clip}
-                             400 when the signature has no path
-                             404 when the gate says no
+GET  <base>/ping     → 200 {"ok": true, "files": <corpus size>}   — or 404
+POST <base>/locate   → 200 {found, confidence, best, others, signature, line}
+                       400 when the signature has no path
+                       404 when the gate says no
 ```
 
-The client draws its button only if `ping` answers 200. So "not mounted" and "not allowed" both
-look the same from outside — a 404 — and the client has one rule: no answer, no button.
+The tapper turns its toggle on only if `ping` answers 200. "Not running" and "not allowed" look
+the same from outside, so the tapper has one rule: no answer, no toggle.
 
-Request body (the signature):
+If the platform already gave an exact source position (platforms.md), the tapper sends it as
+`exact: {file, line}`; the locator checks the file exists in the corpus, takes it as `best` with
+confidence `exact`, and still searches for the handler.
+
+The signature, platform-neutral:
 
 ```json
 {
-  "screen": "cart-view",
+  "screen": "CartFragment",
+  "exact": null,
   "path": [
-    { "tag": "button", "id": null, "cls": ["btn", "btn-buy"], "data": { "sku": "A12" }, "text": "Buy now" },
-    { "tag": "div", "id": null, "cls": ["cart-row"], "data": {}, "text": "…" }
+    { "type": "button", "id": "buy_now", "names": ["btn", "btn-buy"],
+      "attrs": { "sku": "A12" }, "text": "Buy now" },
+    { "type": "LinearLayout", "id": "cart_footer", "names": [], "attrs": {}, "text": "…" }
   ]
 }
 ```
 
-`path[0]` is the tapped element, then its ancestors, nearest first. `screen` is the nearest
-ancestor id that is not the app root.
+`path[0]` is the tapped element, then its ancestors, nearest first. What fills each field, per
+platform, is in platforms.md:
+
+- `id` — the one identifier the toolkit treats as unique: DOM id, Android resource entry name,
+  accessibility identifier, test tag / testID, Flutter `Key`, `objectName`, `x:Name`;
+- `names` — the type-ish names: CSS classes, a custom view/widget/component class name;
+- `attrs` — the rest of the declared attributes worth searching (`data-*`, content description,
+  style name);
+- `type` — the tag or element kind (`button`, `TextView`, `Text`);
+- `text` — the visible text, whitespace collapsed, first 60 chars;
+- `screen` — the current screen: a container id, Activity/Fragment, view controller, route.
 
 Response:
 
@@ -36,62 +53,67 @@ Response:
 {
   "found": true,
   "confidence": "high",
-  "best": { "file": "public/cart.js", "line": 212, "score": 23.5, "handler": 240 },
-  "others": [ { "file": "public/promo.js", "line": 88, "score": 9.1 } ],
-  "signature": "button.btn.btn-buy · inside #cart-view · text «Buy now»",
-  "clip": "public/cart.js:212 · handler :240"
+  "best": { "file": "app/src/main/res/layout/fragment_cart.xml", "line": 42, "score": 23.5, "handler": null },
+  "others": [ { "file": "app/src/main/java/shop/CartFragment.kt", "line": 57, "score": 9.1 } ],
+  "signature": "Button#buy_now · on CartFragment · text «Buy now»",
+  "line": "app/src/main/res/layout/fragment_cart.xml:42 · also: CartFragment.kt:57"
 }
 ```
 
-`file` is relative to the repository root, so it can be opened as written.
+`file` is relative to the repository root, so it opens as written. Every answer is also appended
+to `.tap2line/last.txt` (keep the last ~20) with the time and the signature, so Claude can read it
+without a paste.
 
 ## Gate
 
-Two gates, both answering 404:
+1. **Debug only** — the tapper exists only in debug builds (platforms.md has each platform's
+   switch); a web server mounts the routes only under its dev flag.
+2. **Only the developer** — the locator listens on loopback by default. That covers browsers on
+   the same machine, desktop apps, iOS simulators, and Android via `adb reverse tcp:<port>
+   tcp:<port>` (emulator or USB phone). A phone over Wi-Fi needs the LAN: then the locator prints a
+   random token at start, the person enters it once in the tapper, and every request without it
+   gets 404. If the locator sits inside a web dev server that others can reach, reuse the
+   project's own owner/admin check instead; if the project impersonates users ("view as"), check
+   the real actor. Refuse proxied requests (a forwarding header present) when the gate is
+   loopback.
 
-1. **absence** — mount the routes only in development (the project's own dev flag). In
-   production they do not exist;
-2. **who** — with no login in the project, answer only loopback callers (`127.0.0.1`, `::1`)
-   and refuse anything that arrived through a proxy (a forwarding header present). Tell the person
-   the price: a phone on the LAN cannot use it then; for a phone, gate on a login instead.
-   If the dev server is reachable by anyone but the developer (a shared dev box, a
-   staging site, a server where dev and real users are the same process), let only the project's
-   owner/admin through, reusing the project's existing auth check. If the project impersonates
-   users ("view as"), check the real actor, not the impersonated one — the inspector is used most
-   on exactly those screens.
+Tell the person the trade-off in the plan: loopback is the safest default, and a Wi-Fi phone
+needs the token.
 
 ## Input caps — normalise before anything else
 
-Every token is one pass over the whole corpus; in a single-threaded server a huge signature
-freezes every user. Cap and type-coerce in the function itself (the tests call it directly too):
+Each token is one pass over the corpus; a huge signature must not freeze the machine (or, inside a
+web server, every user). Cap and type-coerce inside the function itself (tests call it directly):
 
-- at most 6 nodes in `path`; per node at most 12 classes, 8 `data-*` entries;
-- every token at most 64 chars; `text` at most 120; `tag` only `[\w-]`, at most 20;
-- `data-*` keys only `^[\w-]{1,40}$` with string values;
-- wrong types (a string where an array belongs) are dropped, never a 500.
+- at most 6 nodes in `path`; per node at most 12 `names`, 8 `attrs`;
+- every token at most 64 chars; `text` at most 120; `type` only `[\w.-]`, at most 40;
+- `attrs` keys only `^[\w-]{1,40}$` with string values;
+- wrong types are dropped, never a crash or a 500.
 
 ## Corpus
 
-The files that build what the browser shows (SKILL.md step 1), read as lines. Cache for ~2
-seconds: long enough to survive a burst of taps, short enough that an edit is seen on the next
-refresh. Exclude the tool's own files by name.
+The files where the UI is born (SKILL.md step 1), read as lines, plus the text tables (string
+resources, translation files). Cache for ~2 seconds: survives a burst of taps, sees an edit on
+the next one. Exclude the tool's own files by name.
 
 ## Tokens and weights
 
-From each node take: its id, each class longer than one char, each `data-<key>`, and each
-`data-*` value that is 3–39 chars and not all digits (record ids never appear in code;
-`data-tab="orders"` often does).
+From each node: `id`; each name longer than one char; each attr key; each attr value that is
+3–39 chars and not all digits (record ids never appear in code).
 
 | token | tapped element | ancestor |
 |---|---|---|
 | id | 10 | 3 |
-| class | 6 | 2 |
-| `data-<key>` | 4 | 1.5 |
-| `data-*` value | 3 | 1 |
+| name (class, custom type) | 6 | 2 |
+| attr key | 4 | 1.5 |
+| attr value | 3 | 1 |
 
-Match tokens as whole names with a boundary that treats `-` as part of the name — `hw-card` must
-not match inside `hw-card-x`, and `card` must not match inside `hw-card`. Standard `\b` gets this
-wrong. Use `(?<![\w-])TOKEN(?![\w-])` (escape the token).
+Platform types that every element shares (`div`, `TextView`, `UIButton`, `Text`) are not tokens;
+they only feed the "own type" bonus below. A custom type (`PriceTag`, `CartRowView`) is a name.
+
+Match tokens as whole names with a boundary that keeps `-` and `_` inside the name — `hw-card`
+must not match inside `hw-card-x`, and `card` must not match inside `hw-card`. Standard `\b` gets
+this wrong. Use `(?<![\w-])TOKEN(?![\w-])` (escape the token).
 
 ## Candidates
 
@@ -104,7 +126,9 @@ if it hits more than **60** lines (it means nothing); otherwise every hit line g
 rarity(n) = 1.5 if n ≤ 2;  1 if n ≤ 6;  0.5 if n ≤ 20;  0.2 otherwise
 ```
 
-A rare exact name must outweigh a common utility class that merely appears many times.
+**Text through a table:** if the visible text is not a literal anywhere but is a value in a string
+table (`<string name="buy_label">Buy now</string>`, `"buy": "Buy now"`), take the key and search
+for it as an own token (weight 6) — `R.string.buy_label`, `@string/buy_label`, `t('buy')`.
 
 No candidates at all → `found: false`. Never invent an answer.
 
@@ -112,19 +136,24 @@ No candidates at all → `found: false`. Never invent an answer.
 
 | signal | points | why |
 |---|---|---|
-| file is the **screen file** | +5 | the container id is written in the module that draws it |
-| the line opens a tag of the element's own tag (`<button`) | +3 | |
-| **birth line** | +4, and mark `birth` | the line builds the element rather than refers to it |
-| the element's visible text appears literally | +4 | only when the text is 3–40 chars and contains a letter; text from data is not in the code |
+| file is the **screen file** | +5 | the screen's name points at the module that draws it |
+| the line opens/creates the element's own type (`<button`, `<Button`, `Button(`) | +3 | |
+| **birth line** | +4, and mark `birth` | the line declares the element rather than refers to it |
+| the visible text appears literally | +4 | only for 3–40 chars containing a letter; text from data is not in the code |
 | ancestors | up to +16 total | see below |
 
-**Screen file** = the corpus file with the most lines matching `id=["']<screen>["']`. Take the
-most, not the first: a neighbour's comment can mention the id once.
+**Screen file** — web: the corpus file with the most lines matching `id=["']<screen>["']` (the
+most, not the first: a neighbour's comment can mention it once). Class-named screens
+(`CartFragment`, `CartViewController`, a route `CartScreen`): the file that declares that class or
+route, and its layout if it inflates one.
 
-**Birth** (§ birth) — a line where a matched token is written as the element's class or id:
-`class="… x …"`, `id="x"`, `className = '… x …'`, `classList.add('x'`. Extend the pattern for
-what this codebase writes (`setAttribute('class'`, `:class=`, a template helper). A
-`querySelector('.x')` line is a reference, not a birth.
+**Birth** — a line where a matched token is written as the element's identity in the platform's
+own idiom: `class="… x …"`, `id="x"`, `className = '… x …'`, `classList.add('x'` (web);
+`android:id="@+id/x"`, `Modifier.testTag("x")` (Android); `.accessibilityIdentifier("x")`,
+`accessibilityIdentifier = "x"` (iOS); `Key('x')` / `ValueKey('x')` (Flutter); `testID="x"`,
+`nativeID="x"` (React Native); `x:Name="x"`, `objectName: "x"`, `setObjectName("x")` (desktop).
+Extend for what this codebase writes. A lookup (`querySelector('.x')`, `findViewById(R.id.x)`,
+`find.byKey`) is a reference, not a birth.
 
 **Ancestors** — for every ancestor token that hits 1–60 lines, looking only at hits in the
 candidate's own file:
@@ -132,30 +161,30 @@ candidate's own file:
 - +2 if it occurs in the file at all;
 - +3 more if one occurrence is within 40 lines;
 - `+ 6 / (1 + d)` where `d` is the distance to the nearest occurrence, **doubled when the
-  candidate is above the ancestor** — in a template the child follows its parent's opening tag.
-  This smooth scale is what separates five hand-written identical tiles in a row; a flat "nearby"
-  bonus gives all five the same score and the first one wins.
+  candidate is above the ancestor** — in markup and in nested UI code the child follows its
+  parent's opening. This smooth scale is what separates hand-written identical tiles in a row; a
+  flat "nearby" bonus gives them all the same score and the first one wins.
 
 Cap the ancestor sum at 16.
 
 ## Merge, rivals, confidence
 
-Sort by score. Merge lines within 3 lines of a better one in the same file — a template's
-neighbouring lines are the same control.
+Sort by score. Merge lines within 3 lines of a better one in the same file — neighbouring lines
+of one declaration are the same element.
 
 The best candidate is `best`. A **rival** is a candidate that would be a *different answer*:
 
 - if `best` is a birth line, only another birth line can rival it — but any other birth line,
   at any distance (hand-repeated markup is exactly the case to catch);
 - if `best` matched the element's **own id**, a rival must match that id too — lines sharing only
-  a decorative class are different elements, not competing answers;
+  a decorative name are different elements, not competing answers;
 - likewise, if `best` matched one of the element's **rare** own tokens (2 hits or fewer in the
-  corpus), a rival must match one of those rare tokens too. A sort button sharing only `.btn` with
-  "Add to cart" is another element, not a competing answer;
+  corpus), a rival must match one of those rare tokens too;
 - otherwise, a rival is any candidate in another file, or more than 60 lines away in the same file.
 
 ```
-confidence = "high"  if (no rival  or  best.score ≥ rival.score × 1.6)  and  best.score ≥ 8
+confidence = "exact" if the platform gave the position
+             "high"  if (no rival  or  best.score ≥ rival.score × 1.6)  and  best.score ≥ 8
              "low"   otherwise
 ```
 
@@ -164,30 +193,37 @@ function are one address — repetition on screen is not ambiguity in code. Real
 copy-paste in the source, and saying so is often the most useful finding.
 
 `others` = up to 3 next candidates that are rivals or far enough away — shown even when
-confidence is high, so the person sees that the same class lives elsewhere.
+confidence is high, so the person sees the same name lives elsewhere. A layout file and the code
+that wires it (`fragment_cart.xml` and `CartFragment.kt`) are both useful: show the second as
+`also:`.
 
 ## Handler
 
-In `best`'s file, the nearest line (other than `best` itself, within 150 lines) that contains one
-of `best`'s matched tokens **and** one of: `addEventListener`, `onclick`, `.on<event> =`,
-`querySelector`, `closest(`, `matches(` (extend for the project's event idiom). That is where the
-element's behaviour is wired. Report it as `handler`.
+Near `best` (same file, within 150 lines; for a layout file, also the screen's code file), the
+nearest line other than `best` that contains one of `best`'s matched tokens **and** a wiring
+idiom: `addEventListener`, `onclick`, `.on<event> =`, `onClick`, `setOnClickListener`,
+`addTarget(`, `@IBAction`, `onPressed:`, `onTap:`, `onPress=`, `clicked.connect`, `Click="…"`,
+`querySelector`, `closest(`, `findViewById(` (extend for the project's idiom). Report it as
+`handler`.
 
-## The clipboard line
+## The output line
 
 ```
-found, high:   <file>:<line>[ · handler :<h>]
-found, low:    <file>:<line> (?)[ · handler :<h>] · also: <f>:<l> · <f>:<l> · sig: <signature>
+exact / high:  <file>:<line>[ · handler :<h>][ · also: <f>:<l>]
+low:           <file>:<line> (?)[ · handler :<h>] · also: <f>:<l> · <f>:<l> · sig: <signature>
 not found:     not found in <corpus dirs> · sig: <signature>
 ```
 
-`signature` reads like `button#buy.btn.btn-buy · inside #cart-view · text «Buy now»`. Match the
-labels to the project's UI language if it is not English; keep the structure.
+`signature` reads like `Button#buy_now · on CartFragment · text «Buy now»`. Match the labels to
+the project's UI language if it is not English; keep the structure.
 
 ## Known limits — say them in the hand-over doc
 
-- A sub-screen drawn into **another module's container**, reusing that module's classes: the
-  screen filter points at the wrong module, the right line comes back among the alternatives.
-- **Classes assembled in a variable** (`` const cls = `row${x}` `` then `class="${cls}"`): no
-  literal birth line, the answer lands near the render function, not on it.
-- **Elements with no literal of their own** (a bare `<div>`/`<span>`): "not found", honestly.
+- A sub-screen drawn into **another module's container**, reusing its names: the screen filter
+  points at the wrong module; the right line comes back among the alternatives.
+- **Names assembled at runtime** (`` `row${x}` ``, `"item_" + i`): no literal birth line, the
+  answer lands near the builder, not on it.
+- **Elements with nothing of their own** — no id, no custom name, no literal text: "not found",
+  honestly. On platforms with a thin runtime tree (SwiftUI, Compose without test tags) this is
+  common; the fix is the platform's exact source where it exists, or an id/test tag on the
+  element, which also helps UI tests.

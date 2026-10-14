@@ -1,26 +1,28 @@
 # tap2line
 
-Tap any element in your running web app and get the source line that builds it on your
-clipboard:
+Tap any element in your running app and get the source line that builds it:
 
 ```
-public/cart.js:212 · handler :240
+src/screens/Cart.kt:118 · handler :131
 ```
 
-Paste it into Claude Code, and the session starts at the line instead of searching for "the buy
-button on the cart screen".
+It lands on your clipboard, and in a file Claude can read, so you either paste it or just say
+"look at my last tap". The session starts at the line instead of searching for "the buy button
+on the cart screen".
+
+## Any platform
+
+Web (plain JS, server templates, React, Vue, Svelte…), Electron, React Native, Flutter, Android
+(Views and Compose), iOS (UIKit and SwiftUI), Qt, WPF, WinForms — and any other UI toolkit that
+offers three things: a way to see a tap before the app does, a tree of elements under a point,
+and something on each element that also appears in the source.
 
 ## What it is
 
 A Claude Code plugin with one skill. **It ships no code.** Claude reads your project and builds
-the inspector inside it, in your language, your module style and your server's routing — then
-builds the tests that keep it honest. You own every line; uninstalling the plugin removes nothing
-from your project.
-
-Made for the projects other inspectors skip: markup born in hand-written JS template strings, DOM
-built by hand, plain HTML, server templates (EJS, Jinja, Blade, ERB, PHP…). No build step needed.
-If your UI is React/Vue/Svelte with a dev build, a compiler-based tool gives exact answers; the
-skill says so first and lets you choose.
+the tool inside it — in your language, your module style, your build — and then builds the tests
+that keep it honest. You own every line; uninstalling the plugin removes nothing from your
+project.
 
 ## Install
 
@@ -33,27 +35,29 @@ Then ask Claude: *"set up tap2line"* (or run `/tap2line:setup`).
 
 ## How it works
 
-- **A mode, not a right-click.** A small button switches the mode on. While it is on, a tap
-  presses nothing — it reads the element's signature (tag, id, classes, `data-*`, text, five
-  ancestors, the screen container) and asks the locator. Works on a phone. Esc or three idle
-  minutes switch it off.
-- **Computed, not stamped.** The locator scores every line of your client source against the
-  signature at request time. Nothing is stored in the markup, so nothing rots when a line is
-  inserted above.
+- **Two halves.** The *tapper* lives in your debug build: a toggle switches a mode on, and while
+  it is on a tap presses nothing — it reads what the UI toolkit knows about the element (ids,
+  test tags, accessibility ids, type names, text, its ancestors, the current screen). The
+  *locator* runs on your machine next to the source and turns that into an address.
+- **Exact where the platform knows, ranked where it does not.** React, Vue, Svelte and Flutter
+  debug builds can name an element's source position; tap2line uses it. Everywhere else the
+  locator scores the lines of your UI source against the element at the moment you tap — nothing
+  is stored or written into your code by hand, so nothing rots when a line is inserted above.
 - **No confident lies.** When two places in the code could have built the element, the answer
   comes back as `(?)` with the alternatives. A wrong confident line costs a whole session; an
   honest "two candidates" costs ten seconds.
-- **Dev only.** The routes exist only in development, and answer only you if your dev server is
-  reachable by others. They index only files your browser already downloads.
+- **Debug only, developer only.** The tapper is not in release builds; the locator listens on
+  your machine only (a phone reaches it through `adb reverse`, the simulator, or a one-time
+  token on your Wi-Fi).
 
 ## The tests it builds
 
 The feature is not done until these are green:
 
-- a case per ranking rule, **built from your live source** (rename a button — the case
-  rebuilds itself instead of failing);
-- an autotest over HTTP, including abuse checks (a 9000-class signature must not freeze the
-  server; junk input must not 500);
+- a case per ranking rule, **built from your live source** (rename a button — the case rebuilds
+  itself instead of failing);
+- an autotest of the locator, including abuse checks (a 9000-name signature must not freeze it;
+  junk input must not crash it) and the gate;
 - a **mutation probe**: copies of the locator with one rule broken each — every break must turn
   some case red. It exists because the first version's tests survived six of six breaks.
 
@@ -62,11 +66,18 @@ The feature is not done until these are green:
 The skill is a request: Claude follows it like an instruction, nothing enforces it. The tests it
 builds are the lock — they run in your project and fail when the inspector would lie.
 
+## Status
+
+Verified end to end on a web project without a build step, in a clean Claude session that had only
+this skill: 14 of 14 taps exact on real elements, every guard green and proven able to go red.
+Other platforms are built from the same method and a per-platform guide; they have not had such a
+run yet — reports welcome.
+
 ## Origin
 
-Extracted from a real no-build school platform (~20k lines of hand-written JS), where it was
-measured on 60 real signatures across 8 screens: after the review, the confident-lie count went
-from four to zero.
+Extracted from a real no-build web platform (~20k lines of hand-written JS), where it was measured
+on 60 real signatures across 8 screens: after the review, the confident-lie count went from four
+to zero.
 
 ## License
 
