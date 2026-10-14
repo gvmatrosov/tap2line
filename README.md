@@ -52,6 +52,23 @@ Then ask Claude: *"set up tap2line"* (or run `/tap2line:setup`).
   your machine only (a phone reaches it through `adb reverse`, the simulator, or a one-time
   token on your Wi-Fi).
 
+## What it touches
+
+The plugin itself is text only: one skill, no scripts, no hooks, no network access. When you ask
+for it, Claude — following the skill, with your usual permission prompts — adds to **your**
+project:
+
+- a small tapper module, loaded only in debug builds;
+- a locator: a dev-only route in your dev server, or a small script, that listens on your own
+  machine (loopback) and reads your UI source files to answer taps. Nothing is sent anywhere
+  else. For a phone on your Wi-Fi it can listen on the LAN behind a one-time token, if you choose;
+- `.tap2line/last.txt` in your project with your last ~20 taps (file:line and the tapped element's
+  signature), added to your ignore file;
+- a few lines in existing files to load the two parts, and a short doc next to the code.
+
+Each tap writes one line to the clipboard of the device you tapped on. No personal data is
+collected; nothing leaves your machine.
+
 ## Lock or request
 
 The skill is a request: Claude follows it like an instruction, nothing enforces it. It leaves no
