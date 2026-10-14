@@ -3,7 +3,8 @@
 It runs on the developer's machine, next to the source, on every platform. Write it in the
 project's own server/tooling language when there is one (a dev-only route in a web server), or as
 a standalone zero-dependency script in whatever runtime the machine surely has (Node, Python).
-The algorithm is plain string scanning; the numbers below are the tuned starting point.
+The algorithm is plain string scanning; the numbers below are the tuned starting point — measured
+on a real app and in clean runs; change one only when real taps show why.
 
 ## Contract
 
@@ -83,7 +84,7 @@ needs the token.
 ## Input caps — normalise before anything else
 
 Each token is one pass over the corpus; a huge signature must not freeze the machine (or, inside a
-web server, every user). Cap and type-coerce inside the function itself (tests call it directly):
+web server, every user). Cap and type-coerce inside the function itself (anything else may call it directly):
 
 - at most 6 nodes in `path`; per node at most 12 `names`, 8 `attrs`;
 - every token at most 64 chars; `text` at most 120; `type` only `[\w.-]`, at most 40;

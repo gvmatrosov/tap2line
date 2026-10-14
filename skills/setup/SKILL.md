@@ -27,9 +27,9 @@ The same tool works on every platform; what changes is where the signature comes
 is intercepted, and how the device reaches the locator. All of that is in
 [references/platforms.md](references/platforms.md).
 
-This skill is a request, not a lock: nothing checks that you followed it. The guards you build in
-step 5 are what make the result true — the tool is **not done** until they are green and have been
-seen to go red.
+This skill is a request, not a lock: nothing checks that you followed it. It builds the tool and
+nothing more — no test suite is left in the project; keeping the tool honest as the project grows
+is the person's call. What makes *this* build true is step 5: real taps, checked by eye.
 
 ## 1. Look at the project — detect first, ask only what cannot be seen
 
@@ -56,8 +56,8 @@ Find out, by reading, not asking:
    simulators), USB (`adb reverse`), or the LAN (a physical phone).
 8. **Taps already taken** — right-click menus, long-press, drag starting on touch-down, a shortcut
    that would clash with the toggle.
-9. **Tests** — how the project runs them, and which UI-test driver is already there (Playwright,
-   Espresso, XCUITest, Flutter integration tests…).
+9. **A UI driver** already in the project (Playwright, Espresso, XCUITest, Flutter integration
+   tests…) — only to drive the taps in step 5 yourself; you add nothing to its suites.
 
 ## 2. Show the plan and wait for an ok
 
@@ -68,8 +68,7 @@ Before writing code, give the person a short plan in plain words:
 - where the locator runs and how the app reaches it;
 - **the gate**: debug builds only, and who else could reach the locator (references/locator.md,
   § gate). Say plainly if a physical phone needs it reachable on the LAN;
-- the files you will add and the few lines you will change in existing files;
-- the guards from step 5, and how long a run takes.
+- the files you will add and the few lines you will change in existing files.
 
 Wait for "ok" or questions. Adjust, then build.
 
@@ -86,22 +85,7 @@ temporary mode that intercepts taps before the app sees them, a toggle reachable
 signature, the clipboard) and [references/platforms.md](references/platforms.md) for how to do
 it on this platform.
 
-## 5. Build the guards — the feature is not done without them
-
-Follow [references/guards.md](references/guards.md):
-
-1. a **case set built from the live source** — one case per ranking rule, plus a negative case;
-2. an **autotest** that runs those cases against the locator, plus input-abuse and gate checks;
-3. a **mutation probe**: copies of the locator each with one rule broken; every break must turn
-   some case red, or be printed as a named gap;
-4. **prove red once**: break one expectation by hand, watch the autotest fail, revert;
-5. if a UI-test driver is already in the project, the end-to-end probe (mode on → tap → nothing in
-   the app fired → the line arrived → mode off).
-
-The locator runs on the developer's machine on every platform, so steps 1–4 are the same
-everywhere.
-
-## 6. Prove it on the real screen
+## 5. Prove it on the real screen
 
 Run the app, switch the mode on, tap at least six different kinds of element (one with an id,
 an item in a repeated list, something inside a modal or sheet, a plain text label, an icon, a
@@ -113,11 +97,11 @@ that element. Report numbers: "5 of 6 exact, 1 came back `(?)` with the right li
 second". A confident wrong answer is a bug to fix before you finish: it costs the person a whole
 session, while an honest `(?)` costs ten seconds.
 
-## 7. Hand it over
+## 6. Hand it over
 
 Tell the person, in a few plain lines: how to switch the mode on, what the line means, what
 `(?)` means, "look at my last tap" as an alternative to pasting, that the mode switches itself off
-after three idle minutes, how to run the guards, and the known limits you saw. Put the same in a
+after three idle minutes, and the known limits you saw. Put the same in a
 short doc next to the code, for the next session that touches it. Add `.tap2line/` to the
 project's ignore file.
 

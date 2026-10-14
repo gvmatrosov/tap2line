@@ -26,8 +26,8 @@ by hand is not.
 | Jetpack Compose | the compiler's `sourceInformation` in debug builds (read by the layout inspector via ui-tooling) — heavy to reach; rank first, add this only if the person wants it |
 | Everything else | none — ranked |
 
-Where an exact source is used, still build the ranking locator: it finds the handler, covers
-elements the compiler did not stamp, and gives the guards something to measure.
+Where an exact source is used, still build the ranking locator: it finds the handler and covers
+elements the compiler did not stamp.
 
 ## Web — no build, server templates, any framework
 

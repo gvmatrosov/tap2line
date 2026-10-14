@@ -22,8 +22,8 @@ and something on each element that also appears in the source.
 ## What it is
 
 A Claude Code plugin with one skill. **It ships no code.** Claude reads your project and builds
-the tool inside it — in your language, your module style, your build — and then builds the tests
-that keep it honest. You own every line; uninstalling the plugin removes nothing from your
+the tool inside it — in your language, your module style, your build — and checks it with real
+taps before handing it over. You own every line; uninstalling the plugin removes nothing from your
 project.
 
 ## Install
@@ -52,28 +52,16 @@ Then ask Claude: *"set up tap2line"* (or run `/tap2line:setup`).
   your machine only (a phone reaches it through `adb reverse`, the simulator, or a one-time
   token on your Wi-Fi).
 
-## The tests it builds
-
-The feature is not done until these are green:
-
-- a case per ranking rule, **built from your live source** (rename a button — the case rebuilds
-  itself instead of failing);
-- an autotest of the locator, including abuse checks (a 9000-name signature must not freeze it;
-  junk input must not crash it) and the gate;
-- a **mutation probe**: copies of the locator with one rule broken each — every break must turn
-  some case red. It exists because the first version's tests survived six of six breaks.
-
 ## Lock or request
 
-The skill is a request: Claude follows it like an instruction, nothing enforces it. The tests it
-builds are the lock — they run in your project and fail when the inspector would lie.
+The skill is a request: Claude follows it like an instruction, nothing enforces it. It leaves no
+test suite behind — if you want the inspector guarded as your code grows, ask Claude for tests.
 
 ## Status
 
 Verified end to end on web projects without a build step, in three clean Claude sessions that had
 only this skill: 44 taps on real elements, zero confident wrong answers (37 right with high
-confidence, 6 honest `(?)` with the right line listed, 1 honest "not found"); every guard green and
-proven able to go red.
+confidence, 6 honest `(?)` with the right line listed, 1 honest "not found").
 Other platforms are built from the same method and a per-platform guide; they have not had such a
 run yet — reports welcome.
 
